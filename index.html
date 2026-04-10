@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SMS 自動作成</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <header class="hero">
+      <p class="eyebrow">SMS 作成ツール</p>
+      <h1>SMS 作成</h1>
+    </header>
+
+    <section class="card-group-section">
+      <h2>定型文を選択</h2>
+      <div class="card-grid" id="templateCards"></div>
+    </section>
+
+    <section class="form-section">
+      <label class="field-label" for="phoneInput">送信先電話番号</label>
+      <input type="tel" id="phoneInput" placeholder="09012345678" inputmode="tel" />
+
+      <label class="field-label" for="messageInput">メッセージ内容</label>
+      <textarea id="messageInput" rows="5"></textarea>
+
+      <button id="createSmsButton" class="primary-button">SMS 作成</button>
+      <p class="note">※ iPhone では Safari からこのボタンを押すとメッセージアプリが起動します。</p>
+    </section>
+  </main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js"></script>
+</body>
+</html>
