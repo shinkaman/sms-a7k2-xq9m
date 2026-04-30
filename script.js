@@ -26,6 +26,8 @@ async function requestFromGAS(body = {}) {
   const query = buildGASQueryString({ token: SECRET_TOKEN, ...body });
   url += `?${query}`;
 
+  console.log("[GAS] Request URL:", url);
+
   const response = await fetch(url, {
     ...options,
     mode: "cors",
@@ -36,13 +38,15 @@ async function requestFromGAS(body = {}) {
   try {
     result = await response.json();
   } catch (parseError) {
-    console.error("GAS response JSON parse error:", parseError);
+    console.error("[GAS] Response JSON parse error:", parseError);
     return { data: null, error: "GASレスポンスの解析に失敗しました。" };
   }
 
+  console.log("[GAS] Response:", result);
+
   if (!response.ok || result.error) {
     const errorMessage = result.error || `HTTP ${response.status}`;
-    console.error("GAS request error:", errorMessage, result);
+    console.error("[GAS] Request error:", errorMessage, result);
     return { data: null, error: errorMessage };
   }
 
@@ -76,8 +80,14 @@ async function insertTemplate(title, body) {
   });
 
   if (error) {
-    console.error("GAS insert error:", error);
-    alert("定型文の追加に失敗しました。");
+    console.error("[GAS] insert error:", error);
+    alert(`定型文の追加に失敗しました。\nエラー: ${error}`);
+    return null;
+  }
+
+  if (!data || typeof data !== "object" || Array.isArray(data) || data.id == null) {
+    console.error("[GAS] insert: unexpected response format (GASの再デプロイが必要な可能性があります):", data);
+    alert("定型文の追加に失敗しました。\nGAS Web Appの再デプロイが必要な可能性があります。");
     return null;
   }
 
@@ -95,8 +105,8 @@ async function deleteTemplateRecord(id) {
   });
 
   if (error) {
-    console.error("GAS delete error:", error);
-    alert("定型文の削除に失敗しました。");
+    console.error("[GAS] delete error:", error);
+    alert(`定型文の削除に失敗しました。\nエラー: ${error}`);
     return false;
   }
 
