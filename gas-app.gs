@@ -7,15 +7,15 @@ function doOptions(e) {
 }
 
 function doGet(e) {
-  return handleRequest(e, "GET");
+  return handleRequest(e);
 }
 
 function doPost(e) {
-  return handleRequest(e, "POST");
+  return createCorsResponse({ error: "POST not supported. Use GET with query params." }, 405);
 }
 
-function handleRequest(e, method) {
-  const params = method === "GET" ? e.parameter : parsePostData(e);
+function handleRequest(e) {
+  const params = e.parameter || {};
 
   if (!isValidToken(params.token)) {
     return createCorsResponse({ error: "Invalid token." }, 401);
@@ -31,22 +31,6 @@ function handleRequest(e, method) {
     return handleList();
   } catch (error) {
     return createCorsResponse({ error: error.message || "Unknown error." }, 500);
-  }
-}
-
-function parsePostData(e) {
-  if (e.parameter && Object.keys(e.parameter).length > 0) {
-    return e.parameter;
-  }
-
-  if (!e.postData || !e.postData.contents) {
-    return {};
-  }
-
-  try {
-    return JSON.parse(e.postData.contents);
-  } catch (error) {
-    throw new Error("Invalid JSON in request body.");
   }
 }
 

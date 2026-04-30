@@ -10,20 +10,15 @@ const createSmsButton = document.getElementById("createSmsButton");
 
 let selectedIndex = -1;
 
-async function requestFromGAS(method, body = {}) {
+async function requestFromGAS(body = {}) {
   let url = GAS_WEBAPP_URL;
   const options = {
-    method,
+    method: "GET",
     cache: "no-store"
   };
 
-  if (method === "GET") {
-    const params = new URLSearchParams({ token: SECRET_TOKEN });
-    url += `?${params.toString()}`;
-  } else {
-    const params = new URLSearchParams({ token: SECRET_TOKEN, ...body });
-    options.body = params.toString();
-  }
+  const params = new URLSearchParams({ token: SECRET_TOKEN, ...body });
+  url += `?${params.toString()}`;
 
   const response = await fetch(url, {
     ...options,
@@ -49,7 +44,7 @@ async function requestFromGAS(method, body = {}) {
 }
 
 async function fetchTemplates() {
-  const { data, error } = await requestFromGAS("GET");
+  const { data, error } = await requestFromGAS();
 
   if (error) {
     console.error("GAS fetch error:", error);
@@ -68,7 +63,7 @@ async function fetchTemplates() {
 }
 
 async function insertTemplate(title, body) {
-  const { data, error } = await requestFromGAS("POST", {
+  const { data, error } = await requestFromGAS({
     action: "add",
     title,
     body
@@ -88,7 +83,7 @@ async function insertTemplate(title, body) {
 }
 
 async function deleteTemplateRecord(id) {
-  const { error } = await requestFromGAS("POST", {
+  const { error } = await requestFromGAS({
     action: "delete",
     id
   });
