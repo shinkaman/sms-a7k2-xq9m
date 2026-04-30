@@ -1,13 +1,5 @@
-const SUPABASE_URL = "https://kaqryxsqxowdwhlcwrtn.supabase.co";
-const SUPABASE_KEY = "sb_publishable_dw1yz1zsYddcfJtmhLuDzA_AHBMqayj";
-
-const supabaseClient =
-  (window.supabase && window.supabase.createClient?.(SUPABASE_URL, SUPABASE_KEY)) ||
-  window.createClient?.(SUPABASE_URL, SUPABASE_KEY);
-
-if (!supabaseClient) {
-  alert("Supabase SDK が読み込まれていません。index.html の SDK script タグを確認してください。");
-}
+const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwYmBO6sGf-2VfoN-ezvqnGQAKb4NvH75j68D92EYe4Rb56l7NypWA4iKE9Euk2rZCw/exec";
+const SECRET_TOKEN = "sms-builder-2026";
 
 let templates = [];
 
@@ -18,36 +10,75 @@ const createSmsButton = document.getElementById("createSmsButton");
 
 let selectedIndex = -1;
 
+async function requestFromGAS(method, body = {}) {
+  let url = GAS_WEBAPP_URL;
+  const options = {
+    method,
+    cache: "no-store"
+  };
+
+  if (method === "GET") {
+    const params = new URLSearchParams({ token: SECRET_TOKEN });
+    url += `?${params.toString()}`;
+  } else {
+    const params = new URLSearchParams({ token: SECRET_TOKEN, ...body });
+    options.headers = {
+      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
+    };
+    options.body = params.toString();
+  }
+
+  const response = await fetch(url, {
+    ...options,
+    mode: "cors",
+    credentials: "omit"
+  });
+  let result;
+
+  try {
+    result = await response.json();
+  } catch (parseError) {
+    console.error("GAS response JSON parse error:", parseError);
+    return { data: null, error: "GASレスポンスの解析に失敗しました。" };
+  }
+
+  if (!response.ok || result.error) {
+    const errorMessage = result.error || `HTTP ${response.status}`;
+    console.error("GAS request error:", errorMessage, result);
+    return { data: null, error: errorMessage };
+  }
+
+  return { data: result.data ?? result, error: null };
+}
+
 async function fetchTemplates() {
-  const { data, error } = await supabaseClient
-    .from("templates")
-    .select("id,title,body")
-    .order("id", { ascending: true });
+  const { data, error } = await requestFromGAS("GET");
 
   if (error) {
-    console.error("Supabase fetch error:", error);
+    console.error("GAS fetch error:", error);
     alert("定型文の読み込み中にエラーが発生しました。");
     return;
   }
 
-  templates = data.map((item) => ({
-    id: item.id,
-    title: item.title,
-    text: item.body
-  }));
+  templates = (Array.isArray(data) ? data : [])
+    .map((item) => ({
+      id: item.id,
+      title: item.title,
+      text: item.body
+    }));
 
   selectedIndex = templates.length > 0 ? 0 : -1;
 }
 
 async function insertTemplate(title, body) {
-  const { data, error } = await supabaseClient
-    .from("templates")
-    .insert({ title, body })
-    .select("id,title,body")
-    .single();
+  const { data, error } = await requestFromGAS("POST", {
+    action: "add",
+    title,
+    body
+  });
 
   if (error) {
-    console.error("Supabase insert error:", error);
+    console.error("GAS insert error:", error);
     alert("定型文の追加に失敗しました。");
     return null;
   }
@@ -60,13 +91,13 @@ async function insertTemplate(title, body) {
 }
 
 async function deleteTemplateRecord(id) {
-  const { error } = await supabaseClient
-    .from("templates")
-    .delete()
-    .eq("id", id);
+  const { error } = await requestFromGAS("POST", {
+    action: "delete",
+    id
+  });
 
   if (error) {
-    console.error("Supabase delete error:", error);
+    console.error("GAS delete error:", error);
     alert("定型文の削除に失敗しました。");
     return false;
   }
