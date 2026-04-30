@@ -22,9 +22,6 @@ async function requestFromGAS(method, body = {}) {
     url += `?${params.toString()}`;
   } else {
     const params = new URLSearchParams({ token: SECRET_TOKEN, ...body });
-    options.headers = {
-      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
-    };
     options.body = params.toString();
   }
 
