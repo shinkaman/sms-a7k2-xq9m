@@ -10,6 +10,12 @@ const createSmsButton = document.getElementById("createSmsButton");
 
 let selectedIndex = -1;
 
+function buildGASQueryString(params) {
+  return Object.entries(params)
+    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`)
+    .join("&");
+}
+
 async function requestFromGAS(body = {}) {
   let url = GAS_WEBAPP_URL;
   const options = {
@@ -17,8 +23,8 @@ async function requestFromGAS(body = {}) {
     cache: "no-store"
   };
 
-  const params = new URLSearchParams({ token: SECRET_TOKEN, ...body });
-  url += `?${params.toString()}`;
+  const query = buildGASQueryString({ token: SECRET_TOKEN, ...body });
+  url += `?${query}`;
 
   const response = await fetch(url, {
     ...options,

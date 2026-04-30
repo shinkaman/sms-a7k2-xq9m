@@ -106,7 +106,7 @@ function createCorsResponse(payload, statusCode) {
   const output = ContentService.createTextOutput(JSON.stringify(payload));
   output.setMimeType(ContentService.MimeType.JSON);
   output.setHeader("Access-Control-Allow-Origin", "*");
-  output.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  output.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   output.setHeader("Access-Control-Allow-Headers", "Content-Type");
   if (statusCode) {
     output.setHeader("X-App-Status", statusCode.toString());
